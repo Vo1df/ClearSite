@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Чистое Решение — розлив продукции</title>
+
+  <style>
+    :root{
+      --text:#eef1ff;
+      --muted: rgba(238,241,255,.78);
+      --accent:#6ea8fe;
+      --glass: rgba(255,255,255,.06);
+      --stroke: rgba(255,255,255,.14);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      font-size:18px;
+      color:var(--text);
+      background: url("images/bg-collage.jpg") center / cover no-repeat fixed;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    /* затемнение + блюр фона */
+    body::before{
+      content:"";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(900px 500px at 15% 10%, rgba(255,255,255,.10), transparent 60%),
+        radial-gradient(900px 500px at 85% 20%, rgba(110,168,254,.16), transparent 55%),
+        linear-gradient(rgba(10,15,25,.78), rgba(10,15,25,.78));
+      backdrop-filter: blur(10px) saturate(1.2);
+      -webkit-backdrop-filter: blur(10px) saturate(1.2);
+      z-index: -2;
+    }
+    body::after{
+      content:"";
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 3px 3px;
+      opacity: .08;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* layout */
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
+
+    /* Liquid Glass */
+    .glass{
+      border-radius:18px;
+      border:1px solid var(--stroke);
+      background:var(--glass);
+      box-shadow:0 10px 30px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.18);
+      backdrop-filter: blur(16px) saturate(1.25);
+      -webkit-backdrop-filter: blur(16px) saturate(1.25);
+      position:relative;
+      overflow:hidden;
+      padding:16px;
+    }
+    .glass::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.22), transparent 35%),
+        linear-gradient(315deg, rgba(110,168,254,.18), transparent 45%);
+      opacity:.70; pointer-events:none;
+    }
+    .glass::after{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(700px 140px at 20% 0%, rgba(255,255,255,.18), transparent 60%),
+        radial-gradient(500px 160px at 98% 12%, rgba(255,255,255,.12), transparent 55%);
+      pointer-events:none; opacity:.85;
+    }
+    .glass > *{position:relative; z-index:1}
+
+    
+    /* ===== hover на ВСЕ стеклянные блоки (и вложенные тоже) ===== */
+    .glass{
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+      will-change: transform;
+      transform-origin: center;
+    }
+    .glass:hover{
+      transform: scale(1.02) translateY(-2px);
+      border-color: rgba(255,255,255,.18);
+      box-shadow: 0 18px 45px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.22);
+    }
+    /* Чтобы при наведении на вложенный .glass не увеличивался родитель */
+    .glass:has(.glass:hover){
+      transform: none;
+      box-shadow: 0 10px 30px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.18);
+    }
+/* typography */
+    h1,h2,h3,h4{margin:0; text-shadow:0 2px 16px rgba(0,0,0,.55)}
+    p, li, a, .muted{ text-shadow:0 1px 10px rgba(0,0,0,.45) }
+    p{margin:0; line-height:1.7}
+    .muted{color:var(--muted)}
+    .small{font-size:13px;opacity:.9}
+
+    /* buttons */
+    .btn{
+      display:inline-block;padding:12px 14px;border-radius:14px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(110,168,254,.92);
+      color:#081023;font-weight:900;text-decoration:none;
+      cursor:pointer;
+      transition: transform .15s ease;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn.ghost{
+      background:rgba(255,255,255,.06);
+      color:rgba(238,241,255,.95);
+    }
+
+    /* ===== header (двумя отдельными блоками) ===== */
+   .headerWrap{
+  display:flex;
+  gap:14px;
+  align-items:center; /* чтобы блоки не растягивались по высоте */
+}
+
+    /* квадрат логотипа — СДЕЛАНО БОЛЬШЕ (примерно в 3 раза визуально) */
+    .logoBlock{
+  width:150px;
+  min-width:150px;
+  height:150px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:22px;
+  padding:10px;
+
+  transition: transform .18s ease, box-shadow .18s ease;
+  cursor:pointer;
+}
+.logoBlock:hover{
+  transform: scale(1.06) translateY(-2px);
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+    .logoBlock img{
+  width:95%;
+  height:auto;
+  display:block;
+  transition: transform .18s ease;
+}
+
+
+    /* основной блок справа */
+   .topbar{
+  flex:1;
+  padding:10px 20px;
+  border-radius:22px;
+  display:flex;
+  align-items:center;   /* центр по вертикали */
+}
+
+    .topbarInner{
+  display:flex;
+  align-items:center;
+  justify-content:center;   /* центр по горизонтали */
+  gap:40px;
+  width:100%;
+}
+
+    .brandName{font-size:22px;font-weight:900;line-height:1.1}
+    .brandTag{font-size:13px;margin-top:2px;opacity:.85}
+
+    /* меню в отдельном "внутреннем" блоке */
+    .navBox{
+      display:flex;
+      gap:10px;
+      padding:8px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.15);
+      flex-wrap:wrap;
+    }
+    .navItem{
+      text-decoration:none;
+      color: rgba(238,241,255,.92);
+      padding:8px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      transition:.15s;
+      white-space:nowrap;
+    }
+    .navItem:hover{
+      background: rgba(255,255,255,.1);
+      transform: translateY(-1px);
+    }
+
+    /* ===== МОЗАИКА, чтобы не было “пустого пробела” слева ===== */
+    .mosaic{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap:14px;
+      align-items:start;
+      grid-template-areas:
+        "heroMain heroSide"
+        "services heroSide"
+        "services products";
+    }
+    .heroMain{ grid-area: heroMain; }
+    .heroSide{ grid-area: heroSide; }
+    .services{ grid-area: services; }
+    .products{ grid-area: products; }
+
+    /* hero content */
+    .lead{margin-top:10px; font-size:18px; max-width:65ch}
+    .heroBadges{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+    .badge{
+      padding:8px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.06);
+      font-size:13px;
+    }
+    .heroCta{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+
+    /* services */
+    .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
+    .mini{padding:14px}
+    .list{margin:10px 0 0;padding-left:18px;line-height:1.85}
+
+    /* steps */
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+    .step{padding:16px}
+    .num{
+      width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+      border:1px solid rgba(255,255,255,.18);background:rgba(110,168,254,.18);
+      font-weight:900;margin-bottom:10px
+    }
+
+    /* contacts */
+    .contacts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .pill{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.16)}
+    a{color:var(--accent)}
+
+    /* footer */
+    .footer{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:14px}
+    .copyright{opacity:.75}
+
+    /* responsive */
+    @media (max-width: 980px){
+      .mosaic{
+        grid-template-columns:1fr;
+        grid-template-areas:
+          "heroMain"
+          "heroSide"
+          "services"
+          "products";
+      }
+      .steps{grid-template-columns:1fr}
+      .topbarInner{flex-direction:column; align-items:flex-start}
+    }
+    @media (max-width: 700px){
+      .cards{grid-template-columns:1fr}
+      .logoBlock{width:120px; min-width:120px; height:120px}
+    }
+    @media (max-width: 520px){
+      .headerWrap{flex-direction:column}
+      .logoBlock{width:110px; min-width:110px; height:110px}
+    }
+.brandText{
+  text-align:center;
+}
+/* ===== ПРЕМИУМ LIQUID GLASS (блики + дорогой hover) ===== */
+:root{
+  --glass-bg: rgba(255,255,255,.055);
+  --glass-stroke: rgba(255,255,255,.14);
+  --glass-stroke-2: rgba(255,255,255,.22);
+  --glass-shadow: 0 12px 34px rgba(0,0,0,.32);
+  --glass-shadow-hover: 0 22px 60px rgba(0,0,0,.45);
+  --glow: 0 0 0 rgba(110,168,254,0);
+  --glow-hover: 0 0 42px rgba(110,168,254,.22);
+}
+
+/* базовое стекло — более “дорогое” */
+.glass{
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-stroke);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,.18);
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+
+  /* плавность */
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease, background .22s ease;
+  transform-origin: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* “глянец” сверху (блик как на айфоне) */
+.glass::after{
+  content:"";
+  position:absolute; inset:-2px;
+  background:
+    radial-gradient(900px 180px at 20% -10%, rgba(255,255,255,.22), transparent 60%),
+    radial-gradient(600px 220px at 95% 15%, rgba(255,255,255,.14), transparent 55%),
+    linear-gradient(135deg, rgba(255,255,255,.10), transparent 35%);
+  opacity: .85;
+  pointer-events:none;
+}
+
+/* тонкий “светящийся” кант */
+.glass::before{
+  content:"";
+  position:absolute; inset:0;
+  border-radius: inherit;
+  padding:1px;
+  background: linear-gradient(135deg, rgba(255,255,255,.22), rgba(110,168,254,.12), rgba(255,255,255,.06));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity:.65;
+  pointer-events:none;
+}
+
+/* “живой” свет при наведении (дорогой эффект) */
+.glass:hover{
+  transform: scale(1.02) translateY(-2px);
+  border-color: var(--glass-stroke-2);
+  box-shadow: var(--glass-shadow-hover), var(--glow-hover), inset 0 1px 0 rgba(255,255,255,.22);
+  background: rgba(255,255,255,.07);
+}
+
+/* При наведении на вложенный .glass — родитель не раздуваем (если у тебя уже было, оставь один вариант) */
+.glass:has(.glass:hover){
+  transform: none;
+  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+@keyframes sheenMove{
+  0%   { transform: translateX(-8%) translateY(-2%); }
+  100% { transform: translateX(8%)  translateY(2%); }
+}
+
+/* Кнопки навигации — чтобы выглядели как мини-стекло */
+.navItem{
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
+}
+.navItem:hover{
+  box-shadow: 0 14px 34px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+/* Уважение к “Reduce motion” */
+@media (prefers-reduced-motion: reduce){
+  .glass, .glass:hover, .glass:hover::after{ transition:none; animation:none; }
+}
+
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <header class="headerWrap">
+      <div class="glass logoBlock">
+        <img src="images/logo.jpg" alt="Чистое Решение">
+      </div>
+
+      <div class="glass topbar">
+        <div class="topbarInner">
+          <div class="brandText">
+            <div class="brandName">Чистое Решение</div>
+          
+          </div>
+
+          <nav class="navBox" aria-label="Навигация">
+            <a class="navItem" href="#services">Услуги</a>
+            <a class="navItem" href="#products">Продукция</a>
+            <a class="navItem" href="#steps">Схема</a>
+            <a class="navItem" href="#contacts">Контакты</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- МОЗАИКА: heroMain + heroSide + services + products -->
+    <div class="mosaic" id="top">
+
+      <section class="glass heroMain" aria-label="Главный экран">
+        <h1>Промышленный розлив продукции под ключ</h1>
+        <p class="lead muted">
+          Мы занимаемся розливом жидкой продукции на современном немецком оборудовании
+          с контролем качества и соблюдением всех стандартов.
+        </p>
+
+        <div class="heroBadges">
+          <span class="badge">Немецкая автоматическая линия</span>
+          <span class="badge">Собственный склад</span>
+          <span class="badge">Погрузчики</span>
+          <span class="badge">Доставка по области</span>
+        </div>
+
+        <div class="heroCta">
+          <a class="btn" href="#contacts">Связаться</a>
+          <a class="btn ghost" href="#services">Посмотреть услуги</a>
+        </div>
+      </section>
+
+      <aside class="glass heroSide" aria-label="О проекте">
+        <h3>О проекте</h3>
+        <p class="muted" style="margin-top:10px; text-align: justify; hyphens: auto;">
+          Наш завод оснащён современным немецким оборудованием, включая автоматическую линию розлива производства Германии.
+          Все процессы организованы с учётом требований к качеству, стабильности и безопасности продукции.
+        </p>
+        <p class="muted" style="margin-top:10px; text-align: justify; hyphens: auto;">
+          Мы располагаем собственным складским комплексом, погрузочной техникой и обеспечиваем хранение готовой продукции
+          на территории предприятия. Для логистики используем собственные погрузчики и грузовой транспорт, что позволяет
+          оперативно выполнять отгрузку и доставку продукции по области в согласованные сроки.
+        </p>
+      </aside>
+
+      <section class="glass services" id="services">
+        <h2>Наши услуги</h2>
+        <p class="muted" style="margin-top:8px">Полный цикл работ — от подготовки до отгрузки.</p>
+
+        <div class="cards">
+          <div class="mini glass">
+            <h4>Розлив</h4>
+            <p class="muted" style="margin-top:8px">В тару нужного объёма, контроль дозировки и стабильности процесса.</p>
+          </div>
+          <div class="mini glass">
+            <h4>Упаковка</h4>
+            <p class="muted" style="margin-top:8px">Этикетка, групповая упаковка, подготовка к отгрузке.</p>
+          </div>
+          <div class="mini glass">
+            <h4>Склад</h4>
+            <p class="muted" style="margin-top:8px">Хранение готовой продукции на нашей площадке.</p>
+          </div>
+          <div class="mini glass">
+            <h4>Логистика</h4>
+            <p class="muted" style="margin-top:8px">Погрузчики + доставка по области нашим грузовым транспортом.</p>
+          </div>
+        </div>
+      </section>
+
+      <aside class="glass products" id="products">
+        <h2>Продукция</h2>
+        <p class="muted" style="margin-top:8px">Подберём формат под задачу и рынок.</p>
+        <ul class="list muted">
+          <li>Жидкие средства и растворы</li>
+          <li>Концентраты</li>
+          <li>Промышленные и бытовые форматы</li>
+          <li>Тара от малых до больших объёмов</li>
+        </ul>
+        <p class="muted small" style="margin-top:10px">* Список можно заменить под ваш ассортимент.</p>
+      </aside>
+
+    </div>
+
+    <section class="glass" id="steps" style="margin-top:14px">
+      <h2>Как начать сотрудничество</h2>
+      <div class="steps">
+        <div class="step glass">
+          <div class="num">1</div>
+          <h4>Задача</h4>
+          <p class="muted" style="margin-top:8px">Вы описываете требования по продукту, таре и объёму. Мы предлагаем решение и расчёт.</p>
+        </div>
+        <div class="step glass">
+          <div class="num">2</div>
+          <h4>Согласование</h4>
+          <p class="muted" style="margin-top:8px">Подбираем упаковку и технологию, утверждаем макет, планируем производство.</p>
+        </div>
+        <div class="step glass">
+          <div class="num">3</div>
+          <h4>Розлив и поставка</h4>
+          <p class="muted" style="margin-top:8px">Производим, упаковываем, размещаем на складе и доставляем по области.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass" style="margin-top:14px">
+      <h2>Почему с нами выгодно</h2>
+      <ul class="list muted">
+        <li>Немецкое оборудование и автоматическая линия розлива</li>
+        <li>Собственный склад, погрузчики и отгрузка без задержек</li>
+        <li>Контроль этапов и согласованные сроки</li>
+        <li>Доставка нашим грузовым транспортом по области</li>
+      </ul>
+    </section>
+
+    <footer class="glass footer" id="contacts">
+      <div>
+        <h3>Контакты</h3>
+        <div class="contacts">
+          <div class="pill">Телефон: <a href="tel:+89930262889">+8 993 026-28-89</a></div>
+          <div class="pill">Email: <a href="mailto:CLEAN.RESHENIE@MAIL.RU">CLEAN.RESHENIE@MAIL.RU</a></div>
+          <div class="pill">Город: <span class="muted">Новосибирск</span></div>
+        </div>
+      </div>
+      <div class="copyright muted small">© <span id="y"></span> Чистое Решение</div>
+    </footer>
+
+  </div>
+
+  <script>
+    document.getElementById("y").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
