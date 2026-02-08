@@ -69,51 +69,64 @@
         radial-gradient(900px 700px at 45% 90%, rgba(255,255,255,.05), transparent 60%);
       filter: blur(0.2px);
     }
-    .fogOverlay::before{
-      content:"";
-      position:absolute;
-      inset:-40px 0;
-      opacity:.65;
-      background:
-        radial-gradient(circle at 20% 10%, rgba(255,255,255,.18) 0 3px, transparent 4px),
-        radial-gradient(circle at 62% 18%, rgba(255,255,255,.16) 0 2.5px, transparent 3.5px),
-        radial-gradient(circle at 78% 6%, rgba(255,255,255,.14) 0 2px, transparent 3px),
-        radial-gradient(circle at 35% 28%, rgba(255,255,255,.12) 0 2.2px, transparent 3.2px),
-        radial-gradient(circle at 12% 40%, rgba(255,255,255,.14) 0 2px, transparent 3px),
-        radial-gradient(circle at 88% 46%, rgba(255,255,255,.12) 0 2.4px, transparent 3.4px);
-      background-size:
-        220px 220px,
-        260px 260px,
-        240px 240px,
-        280px 280px,
-        300px 300px,
-        260px 260px;
-      background-repeat: repeat;
-      transform: translateY(-40px);
-      animation: dropletsFall 9s linear infinite;
-      mix-blend-mode: screen;
-    }
-    .fogOverlay::after{
-      content:"";
-      position:absolute;
-      inset:-60px 0;
-      opacity:.28;
-      background:
-        linear-gradient(to bottom, rgba(255,255,255,.22), transparent 40%) 12% 0/10px 120px no-repeat,
-        linear-gradient(to bottom, rgba(255,255,255,.18), transparent 45%) 28% 0/8px 160px no-repeat,
-        linear-gradient(to bottom, rgba(255,255,255,.20), transparent 42%) 44% 0/9px 140px no-repeat,
-        linear-gradient(to bottom, rgba(255,255,255,.16), transparent 46%) 61% 0/7px 180px no-repeat,
-        linear-gradient(to bottom, rgba(255,255,255,.18), transparent 44%) 77% 0/8px 150px no-repeat,
-        linear-gradient(to bottom, rgba(255,255,255,.14), transparent 48%) 90% 0/6px 170px no-repeat;
-      animation: streaksFall 6.5s linear infinite;
-      mix-blend-mode: screen;
-    }
-    @keyframes dropletsFall{ 0%{ transform: translateY(-80px); } 100%{ transform: translateY(80px); } }
-    @keyframes streaksFall{ 0%{ transform: translateY(-120px); } 100%{ transform: translateY(120px); } }
-    @media (prefers-reduced-motion: reduce){
-      .fogOverlay::before,
-      .fogOverlay::after{ animation:none; }
-    }
+    /* слой капель — БЕЗ рывков */
+.fogOverlay::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  opacity:.65;
+
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255,255,255,.18) 0 3px, transparent 4px),
+    radial-gradient(circle at 62% 18%, rgba(255,255,255,.16) 0 2.5px, transparent 3.5px),
+    radial-gradient(circle at 78% 6%,  rgba(255,255,255,.14) 0 2px, transparent 3px),
+    radial-gradient(circle at 35% 28%, rgba(255,255,255,.12) 0 2.2px, transparent 3.2px),
+    radial-gradient(circle at 12% 40%, rgba(255,255,255,.14) 0 2px, transparent 3px),
+    radial-gradient(circle at 88% 46%, rgba(255,255,255,.12) 0 2.4px, transparent 3.4px);
+
+  /* важно: одинаковый тайл, чтобы позиция замыкалась */
+  background-size: 260px 260px;
+  background-repeat: repeat;
+  background-position: 0 0;
+
+  animation: dropletsBG 9s linear infinite;
+  mix-blend-mode: screen;
+}
+
+/* потёки — тоже БЕЗ рывков */
+.fogOverlay::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  opacity:.28;
+
+  /* делаем повторяющийся узор потёков */
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,.22), transparent 55%) 12px 0/10px 200px repeat-y,
+    linear-gradient(to bottom, rgba(255,255,255,.18), transparent 55%) 36px 0/8px  240px repeat-y,
+    linear-gradient(to bottom, rgba(255,255,255,.20), transparent 55%) 62px 0/9px  220px repeat-y,
+    linear-gradient(to bottom, rgba(255,255,255,.16), transparent 55%) 92px 0/7px  260px repeat-y,
+    linear-gradient(to bottom, rgba(255,255,255,.18), transparent 55%) 124px 0/8px 240px repeat-y,
+    linear-gradient(to bottom, rgba(255,255,255,.14), transparent 55%) 156px 0/6px 260px repeat-y;
+
+  background-repeat: repeat;
+  background-position: 0 0;
+
+  animation: streaksBG 6.5s linear infinite;
+  mix-blend-mode: screen;
+}
+
+/* ключ: двигаем фон ровно на величину тайла (260px) => бесшовно */
+@keyframes dropletsBG{
+  from{ background-position: 0 0; }
+  to  { background-position: 0 260px; }
+}
+
+/* тут тоже лучше кратное — можно 260px */
+@keyframes streaksBG{
+  from{ background-position: 0 0; }
+  to  { background-position: 0 260px; }
+}
 
 /* layout */
     .wrap{max-width:1100px;margin:0 auto;padding:24px}
