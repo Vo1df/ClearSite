@@ -202,24 +202,27 @@
       transform: translateY(-1px);
     }
 
-    /* ===== МОЗАИКА, чтобы не было “пустого пробела” слева ===== */
+    /* ===== МОЗАИКА: heroMain + photoTop + services + photoBottom + (ниже) heroSide + products ===== */
     .mosaic{
       margin-top:14px;
       display:grid;
       grid-template-columns: 1.25fr .75fr;
       gap:14px;
-      align-items:start;
+      /* важно: делаем одинаковую высоту блоков в каждой строке */
+      align-items:stretch;
       grid-template-areas:
-        "heroMain heroSide"
-        "services heroSide"
-        "services products";
+        "heroMain photoTop"
+        "services photoBottom"
+        "heroSide products";
     }
     .heroMain{ grid-area: heroMain; }
-    .heroSide{ grid-area: heroSide; }
+    .photoTop{ grid-area: photoTop; }
     .services{ grid-area: services; }
+    .photoBottom{ grid-area: photoBottom; }
+    .heroSide{ grid-area: heroSide; }
     .products{ grid-area: products; }
 
-    /* hero content */
+/* hero content */
     .lead{margin-top:10px; font-size:18px; max-width:65ch}
     .heroBadges{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
     .badge{
@@ -259,12 +262,15 @@
         grid-template-columns:1fr;
         grid-template-areas:
           "heroMain"
-          "heroSide"
+          "photoTop"
           "services"
+          "photoBottom"
+          "heroSide"
           "products";
       }
       .steps{grid-template-columns:1fr}
       .topbarInner{flex-direction:column; align-items:flex-start}
+    }
     }
     @media (max-width: 700px){
       .cards{grid-template-columns:1fr}
@@ -362,33 +368,46 @@
 @media (prefers-reduced-motion: reduce){
   .glass, .glass:hover, .glass:hover::after{ transition:none; animation:none; }
 }
-.photoTop{
-  grid-area: heroSide;
-}
-
-.photoBottom{
-  grid-area: products;
-}
-
+/* ===== photo slider cards (по высоте равны соседним блокам) ===== */
 .photoCard{
-  overflow:hidden;
-  padding:12px;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  height:100%;
 }
-
 .photoFrame{
+  position:relative;
+  flex:1;
   width:100%;
-  height:220px;
-  border-radius:14px;
+  border-radius:16px;
   overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.18);
+  min-height: 260px;
 }
-
 .photoFrame img{
   width:100%;
   height:100%;
   object-fit:cover;
+  display:block;
+  transform: scale(1.02);
+  transition: opacity .35s ease, transform .55s ease;
+}
+.photoFrame::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(700px 240px at 20% 0%, rgba(255,255,255,.10), transparent 60%),
+    linear-gradient(to top, rgba(0,0,0,.32), transparent 55%);
+  opacity:.9;
+}
+.photoCaption{
+  margin-top:10px;
 }
 
-  </style>
+</style>
 </head>
 
 <body>
@@ -555,6 +574,47 @@
 
   <script>
     document.getElementById("y").textContent = new Date().getFullYear();
+
+    // ===== Слайдер 1 (справа от hero) =====
+    const sliderTop = document.getElementById("sliderTop");
+    const topImages = [
+      "images/line1.jpg",
+      "images/line2.jpg",
+      "images/line3.jpg"
+    ];
+
+    // ===== Слайдер 2 (справа от услуг) =====
+    const sliderBottom = document.getElementById("sliderBottom");
+    const bottomImages = [
+      "images/work1.jpg",
+      "images/work2.jpg",
+      "images/work3.jpg"
+    ];
+
+    function runSlider(imgEl, list, intervalMs){
+      if(!imgEl || !Array.isArray(list) || list.length < 2) return;
+      let i = 0;
+      const preload = (src) => { const im = new Image(); im.src = src; };
+
+      setInterval(() => {
+        i = (i + 1) % list.length;
+        const nextSrc = list[i];
+        preload(nextSrc);
+
+        imgEl.style.opacity = "0";
+        setTimeout(() => {
+          imgEl.src = nextSrc;
+          imgEl.style.transform = "scale(1.04)";
+          imgEl.onload = () => {
+            imgEl.style.opacity = "1";
+            imgEl.style.transform = "scale(1.02)";
+          };
+        }, 220);
+      }, intervalMs);
+    }
+
+    runSlider(sliderTop, topImages, 3200);
+    runSlider(sliderBottom, bottomImages, 3600);
   </script>
 </body>
 </html>
