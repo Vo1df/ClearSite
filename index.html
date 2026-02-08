@@ -362,6 +362,45 @@
 @media (prefers-reduced-motion: reduce){
   .glass, .glass:hover, .glass:hover::after{ transition:none; animation:none; }
 }
+/* ===== photo slider cards ===== */
+.photoCard{
+  padding:14px;
+}
+
+.photoFrame{
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.18);
+  aspect-ratio: 4 / 3;          /* красивый размер карточки */
+}
+
+.photoFrame img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  transform: scale(1.02);
+  transition: opacity .35s ease, transform .55s ease;
+}
+
+.photoCaption{
+  margin-top:10px;
+  font-size:13px;
+  opacity:.9;
+}
+
+/* лёгкая “киношность” */
+.photoFrame::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background: radial-gradient(700px 240px at 20% 0%, rgba(255,255,255,.10), transparent 60%),
+              linear-gradient(to top, rgba(0,0,0,.30), transparent 55%);
+  opacity:.9;
+}
+.photoFrame{ position:relative; }
 
   </style>
 </head>
@@ -414,19 +453,12 @@
         </div>
       </section>
 
-      <aside class="glass heroSide" aria-label="О проекте">
-        <h3>О проекте</h3>
-        <p class="muted" style="margin-top:10px; text-align: justify; hyphens: auto;">
-          Наш завод оснащён современным немецким оборудованием, включая автоматическую линию розлива производства Германии.
-          Все процессы организованы с учётом требований к качеству, стабильности и безопасности продукции.
-        </p>
-        <p class="muted" style="margin-top:10px; text-align: justify; hyphens: auto;">
-          Мы располагаем собственным складским комплексом, погрузочной техникой и обеспечиваем хранение готовой продукции
-          на территории предприятия. Для логистики используем собственные погрузчики и грузовой транспорт, что позволяет
-          оперативно выполнять отгрузку и доставку продукции по области в согласованные сроки.
-        </p>
-      </aside>
-
+     <aside class="glass heroSide photoCard" aria-label="Фото производства">
+  <div class="photoFrame">
+    <img id="sliderTop" src="images/photoA1.jpg" alt="Фото производства">
+  </div>
+  <div class="photoCaption muted">Производство / линия розлива</div>
+</aside>
       <section class="glass services" id="services">
         <h2>Наши услуги</h2>
         <p class="muted" style="margin-top:8px">Полный цикл работ — от подготовки до отгрузки.</p>
@@ -451,20 +483,13 @@
         </div>
       </section>
 
-      <aside class="glass products" id="products">
-        <h2>Продукция</h2>
-        <p class="muted" style="margin-top:8px">Подберём формат под задачу и рынок.</p>
-        <ul class="list muted">
-          <li>Жидкие средства и растворы</li>
-          <li>Концентраты</li>
-          <li>Промышленные и бытовые форматы</li>
-          <li>Тара от малых до больших объёмов</li>
-        </ul>
-        <p class="muted small" style="margin-top:10px">* Список можно заменить под ваш ассортимент.</p>
-      </aside>
-
+     <aside class="glass products photoCard" id="products" aria-label="Фото склада и логистики">
+  <div class="photoFrame">
+    <img id="sliderBottom" src="images/photoB1.jpg" alt="Фото склада">
+  </div>
+  <div class="photoCaption muted">Склад / упаковка / отгрузка</div>
+</aside>
     </div>
-
     <section class="glass" id="steps" style="margin-top:14px">
       <h2>Как начать сотрудничество</h2>
       <div class="steps">
@@ -511,7 +536,44 @@
   </div>
 
   <script>
-    document.getElementById("y").textContent = new Date().getFullYear();
-  </script>
+  document.getElementById("y").textContent = new Date().getFullYear();
+
+  // ===== СЛАЙДЕР 1 (справа от hero) =====
+  const sliderTop = document.getElementById("sliderTop");
+  const topImages = [
+    "images/photoA1.jpg",
+    "images/photoA2.jpg",
+    "images/photoA3.jpg"
+  ];
+
+  // ===== СЛАЙДЕР 2 (справа от услуг) =====
+  const sliderBottom = document.getElementById("sliderBottom");
+  const bottomImages = [
+    "images/photoB1.jpg",
+    "images/photoB2.jpg",
+    "images/photoB3.jpg"
+  ];
+
+  function runSlider(imgEl, list, intervalMs = 3000){
+    let i = 0;
+    setInterval(() => {
+      i = (i + 1) % list.length;
+
+      // плавная смена
+      imgEl.style.opacity = "0";
+      setTimeout(() => {
+        imgEl.src = list[i];
+        imgEl.style.transform = "scale(1.04)";
+        imgEl.onload = () => {
+          imgEl.style.opacity = "1";
+          imgEl.style.transform = "scale(1.02)";
+        };
+      }, 220);
+    }, intervalMs);
+  }
+
+  if (sliderTop) runSlider(sliderTop, topImages, 3200);
+  if (sliderBottom) runSlider(sliderBottom, bottomImages, 3600);
+</script>
 </body>
 </html>
